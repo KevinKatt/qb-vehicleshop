@@ -184,6 +184,7 @@ RegisterNetEvent('qb-vehicleshop:server:financePaymentFull', function(data)
 end)
 
 -- Buy public vehicle outright
+--[[
 RegisterNetEvent('qb-vehicleshop:server:buyShowroomVehicle', function(vehicle)
     local src = source
     local vehicle = vehicle.buyVehicle
@@ -219,6 +220,49 @@ RegisterNetEvent('qb-vehicleshop:server:buyShowroomVehicle', function(vehicle)
         TriggerClientEvent('QBCore:Notify', src, 'Congratulations on your purchase!', 'success')
         TriggerClientEvent('qb-vehicleshop:client:buyShowroomVehicle', src, vehicle, plate)
         pData.Functions.RemoveMoney('bank', vehiclePrice, 'vehicle-bought-in-showroom')
+    else
+        TriggerClientEvent('QBCore:Notify', src, 'Not enough money', 'error')
+    end
+end)
+]]
+
+RegisterNetEvent('qb-vehicleshop:server:buyShowroomVehicle', function(vehicle)
+    local src = source
+    local vehicle = vehicle.buyVehicle
+    local pData = QBCore.Functions.GetPlayer(src)
+    local cid = pData.PlayerData.citizenid
+    local cash = pData.PlayerData.money['cash']
+    local bank = pData.PlayerData.money['bank']
+    local vehiclePrice = QBCore.Shared.Vehicles[vehicle]['price']
+    local plate = GeneratePlate()
+    if cash > vehiclePrice then
+        MySQL.Async.insert('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, state) VALUES (?, ?, ?, ?, ?, ?, ?)', {
+            pData.PlayerData.license,
+            cid,
+            vehicle,
+            GetHashKey(vehicle),
+            '{}',
+            plate,
+            0
+        })
+        TriggerClientEvent('QBCore:Notify', src, 'Congratulations on your purchase!', 'success')
+        TriggerClientEvent('qb-vehicleshop:client:buyShowroomVehicle', src, vehicle, plate)
+        pData.Functions.RemoveMoney('cash', vehiclePrice, 'vehicle-bought-in-showroom')
+        exports['jl-carboost']:AddVIN(plate)
+    elseif bank > vehiclePrice then
+        MySQL.Async.insert('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, state) VALUES (?, ?, ?, ?, ?, ?, ?)', {
+            pData.PlayerData.license,
+            cid,
+            vehicle,
+            GetHashKey(vehicle),
+            '{}',
+            plate,
+            0
+        })
+        TriggerClientEvent('QBCore:Notify', src, 'Congratulations on your purchase!', 'success')
+        TriggerClientEvent('qb-vehicleshop:client:buyShowroomVehicle', src, vehicle, plate)
+        pData.Functions.RemoveMoney('bank', vehiclePrice, 'vehicle-bought-in-showroom')
+        exports['jl-carboost']:AddVIN(plate)
     else
         TriggerClientEvent('QBCore:Notify', src, 'Not enough money', 'error')
     end

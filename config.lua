@@ -107,8 +107,46 @@ Config.Shops = {
         ['ShopLabel'] = 'Luxury Vehicle Shop',
         ['showBlip'] = true,  --- true or false
         ['Categories'] = {
-            ['super'] = 'Super',
-            ['sports'] = 'Sports'
+            ['aston'] = 'Aston Martin',
+            ['audi'] = 'Audi',
+            ['bentley'] ='Bentley',
+            ['bmw'] ='BMW',
+            ['bugatti'] ='Bugatti',
+            ['cadillac'] = 'Cadillac',
+            ['chevrolet'] = 'Chevrolet',
+            ['dodge'] = 'Dodge',
+            ['dacia'] = 'Dacia',
+            ['ferrari'] = 'Ferrari',
+            ['ford'] ='Ford',
+            ['honda'] = 'Honda',
+            ['italdesign'] = 'Italdesign',
+            ['jaguar'] ='Jaguar',
+            ['jeep'] = 'Jeep',
+            ['koenigsegg'] = 'Koenigsegg',
+            ['lamborghini'] = 'Lamborghini',
+            ['lexus'] = 'Lexus',
+            ['landrover'] = 'Land Rover',
+            ['lotus'] = 'Lotus',
+            ['quartz'] = 'Quartz',
+            ['maserati'] = 'Maserati',
+            ['mazda'] = 'Mazda',
+            ['mclaren'] ='McLaren',
+            ['mercedesbenz'] = 'Mercedes-Benz',
+            ['mercedesamg'] = 'Mercedes-AMG',
+            ['mitsubishi'] = 'Mitsubishi',
+            ['nissan'] = 'Nissan',
+            ['porsche'] ='Porsche',
+            ['peugeot'] = 'Peugeot',
+            ['rangerover'] ='Range Rover',
+            ['renault'] = 'Renault',
+            ['rollsroyce'] = 'Rolls-Royce',
+            ['subaru'] = 'Subaru',
+            ['suzuki'] = 'Suzuki',
+            ['tesla'] = 'Tesla',
+            ['toyota'] = 'Toyota',
+            ['volkswagen'] = 'Volkswagen',
+            ['volvo'] = 'Volvo',
+            ['wmotors'] = 'W-Motors'
         },
         ['TestDriveTimeLimit'] = 0.5,
         ['Location'] = vector3(-1255.6, -361.16, 36.91),
@@ -117,34 +155,77 @@ Config.Shops = {
         ['ShowroomVehicles'] = {
             [1] = {
                 coords = vector4(-1265.31, -354.44, 36.91 - 1.0, 205.08),
-                defaultVehicle = 'italirsx',
-                chosenVehicle = 'italirsx',
+                defaultVehicle = 'pcs18',
+                chosenVehicle = 'pcs18',
             },
             [2] = {
                 coords = vector4(-1270.06, -358.55, 36.91 - 1.0, 247.08),
-                defaultVehicle = 'italigtb',
-                chosenVehicle = 'italigtb',
+                defaultVehicle = 'skyline',
+                chosenVehicle = 'skyline',
             },
             [3] = {
                 coords = vector4(-1269.21, -365.03, 36.91 - 1.0, 297.12),
-                defaultVehicle = 'nero',
-                chosenVehicle = 'nero',
+                defaultVehicle = 'levante',
+                chosenVehicle = 'levante',
             },
             [4] = {
                 coords = vector4(-1252.07, -364.2, 36.91, 56.44),
-                defaultVehicle = 'bati',
-                chosenVehicle = 'bati',
+                defaultVehicle = 'katana',
+                chosenVehicle = 'katana',
             },
             [5] = {
                 coords = vector4(-1255.49, -365.91, 36.91, 55.63),
-                defaultVehicle = 'carbonrs',
-                chosenVehicle = 'carbonrs',
+                defaultVehicle = 'katana',
+                chosenVehicle = 'katana',
             },
             [6] = {
                 coords = vector4(-1249.21, -362.97, 36.91, 53.24),
-                defaultVehicle = 'hexer',
-                chosenVehicle = 'hexer',
+                defaultVehicle = 'katana',
+                chosenVehicle = 'katana',
             },
         }
-    } -- Add your next table under this comma
+    }, -- Add your next table under this comma
+    ['policeshop'] = {
+        ['Type'] = 'free-use',  -- meaning a real player has to sell the car
+        ['Zone'] = {
+            ['Shape'] = {
+                vector2(423.42358398438, -992.18719482422),
+                vector2(423.42514038086, -972.08856201172),
+                vector2(461.10162353516, -972.08874511718),
+                vector2(461.1015625, -974.20886230468),
+                vector2(463.89752197266, -974.69567871094),
+                vector2(464.27737426758, -992.18640136718)
+            },
+            ['minZ'] = 23.729675292968,
+            ['maxZ'] = 27.604892730712
+        },
+        ['Job'] = 'police', -- Name of job or none
+        ['ShopLabel'] = 'Polisfordon',
+        ['showBlip'] = false,  --- true or false
+        ['Categories'] = {
+            ['police'] = 'Polisfordon'
+        },
+        ['TestDriveTimeLimit'] = 0.5,
+        ['Location'] = vector3(436.52, -987.75, 25.07),
+        ['ReturnLocation'] = vector3(436.52, -987.75, 25.07),
+        ['VehicleSpawn'] = vector4(431.33, -985.94, 25.07, 179.94),
+        ['ShowroomVehicles'] = {
+            [1] = {
+                coords = vector4(441.87, -990.83, 25.07, 91.07),
+                defaultVehicle = 'police',
+                chosenVehicle = 'police',
+            },
+            [2] = {
+                coords = vector4(441.59, -985.02, 25.07, 90.35),
+                defaultVehicle = 'police2',
+                chosenVehicle = 'police2',
+            },
+            [3] = {
+                coords = vector4(441.67, -979.37, 25.07, 90.1),
+                defaultVehicle = 'fbi',
+                chosenVehicle = 'fbi',
+            },
+        }
+    }
 }
+
