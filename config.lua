@@ -1,5 +1,5 @@
 Config = {}
-Config.UsingTarget = false -- If you are using qb-target (uses entity zones to target vehicles)
+Config.UsingTarget = GetConvar('UseTarget', 'false') == 'true'
 Config.Commission = 0.10 -- Percent that goes to sales person from a full car sale 10%
 Config.FinanceCommission = 0.05 -- Percent that goes to sales person from a finance sale 5%
 Config.FinanceZone = vector3(-29.53, -1103.67, 26.42) -- Where the finance menu is located
@@ -26,7 +26,9 @@ Config.Shops = {
         },
         ['Job'] = 'none', -- Name of job or none
         ['ShopLabel'] = 'Premium Deluxe Motorsport', -- Blip name
-        ['showBlip'] = true,  --- true or false
+        ['showBlip'] = true,  -- true or false
+        ['blipSprite'] = 326,  -- Blip sprite
+        ['blipColor'] = 3,  -- Blip color
         ['Categories'] = { -- Categories available to browse
             ['sportsclassics'] = 'Sports Classics',
             ['sedans'] = 'Sedans',
@@ -105,7 +107,9 @@ Config.Shops = {
         },
         ['Job'] = 'cardealer', -- Name of job or none
         ['ShopLabel'] = 'Luxury Vehicle Shop',
-        ['showBlip'] = true,  --- true or false
+        ['showBlip'] = true,  -- true or false
+        ['blipSprite'] = 326,  -- Blip sprite
+        ['blipColor'] = 3,  -- Blip color
         ['Categories'] = {
             ['aston'] = 'Aston Martin',
             ['audi'] = 'Audi',
