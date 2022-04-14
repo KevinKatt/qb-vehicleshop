@@ -22,7 +22,8 @@ Config.Shops = {
                 vector2(-31.292987823486, -1095.3717041016)
             },
             ['minZ'] = 25.0,  -- min height of the shop zone
-            ['maxZ'] = 28.0  -- max height of the shop zone
+            ['maxZ'] = 28.0,  -- max height of the shop zone
+            ['size'] = 2.75, -- size of the vehicles zones
         },
         ['Job'] = 'none', -- Name of job or none
         ['ShopLabel'] = 'Premium Deluxe Motorsport', -- Blip name
@@ -88,7 +89,7 @@ Config.Shops = {
             }
         },
     },
-   ['luxury'] = {
+    ['luxury'] = {
         ['Type'] = 'managed',  -- meaning a real player has to sell the car
         ['Zone'] = {
             ['Shape'] = {
@@ -103,7 +104,8 @@ Config.Shops = {
                 vector2(-1252.9503173828, -345.85726928711)
             },
             ['minZ'] = 36.646457672119,
-            ['maxZ'] = 37.516143798828
+            ['maxZ'] = 37.516143798828,
+            ['size'] = 2.75, -- size of the vehicles zones
         },
         ['Job'] = 'cardealer', -- Name of job or none
         ['ShopLabel'] = 'Luxury Vehicle Shop',
@@ -189,47 +191,102 @@ Config.Shops = {
             },
         }
     }, -- Add your next table under this comma
-    ['policeshop'] = {
-        ['Type'] = 'free-use',  -- meaning a real player has to sell the car
+    ['boats'] = {
+        ['Type'] = 'free-use',  -- no player interaction is required to purchase a vehicle
         ['Zone'] = {
-            ['Shape'] = {
-                vector2(423.42358398438, -992.18719482422),
-                vector2(423.42514038086, -972.08856201172),
-                vector2(461.10162353516, -972.08874511718),
-                vector2(461.1015625, -974.20886230468),
-                vector2(463.89752197266, -974.69567871094),
-                vector2(464.27737426758, -992.18640136718)
+            ['Shape'] = { --polygon that surrounds the shop
+                vector2(-729.39, -1315.84),
+                vector2(-766.81, -1360.11),
+                vector2(-754.21, -1371.49),
+                vector2(-716.94, -1326.88),
             },
-            ['minZ'] = 23.729675292968,
-            ['maxZ'] = 27.604892730712
+            ['minZ'] = 0.0,  -- min height of the shop zone
+            ['maxZ'] = 5.0,  -- max height of the shop zone
+            ['size'] = 6.2, -- size of the vehicles zones
         },
-        ['Job'] = 'police', -- Name of job or none
-        ['ShopLabel'] = 'Polisfordon',
-        ['showBlip'] = false,  --- true or false
-        ['Categories'] = {
-            ['police'] = 'Polisfordon'
+        ['Job'] = 'none', -- Name of job or none
+        ['ShopLabel'] = 'Marina Shop', -- Blip name
+        ['showBlip'] = true,  -- true or false
+        ['blipSprite'] = 410,  -- Blip sprite
+        ['blipColor'] = 3,  -- Blip color
+        ['Categories'] = { -- Categories available to browse
+            ['boats'] = 'Boats',
         },
-        ['TestDriveTimeLimit'] = 0.5,
-        ['Location'] = vector3(436.52, -987.75, 25.07),
-        ['ReturnLocation'] = vector3(436.52, -987.75, 25.07),
-        ['VehicleSpawn'] = vector4(431.33, -985.94, 25.07, 179.94),
+        ['TestDriveTimeLimit'] = 1.5, -- Time in minutes until the vehicle gets deleted
+        ['Location'] = vector3(-738.25, -1334.38, 1.6), -- Blip Location
+        ['ReturnLocation'] = vector3(-714.34, -1343.31, 0.0), -- Location to return vehicle, only enables if the vehicleshop has a job owned
+        ['VehicleSpawn'] = vector4(-727.87, -1353.1, -0.17, 137.09), -- Spawn location when vehicle is bought
         ['ShowroomVehicles'] = {
             [1] = {
-                coords = vector4(441.87, -990.83, 25.07, 91.07),
-                defaultVehicle = 'police',
-                chosenVehicle = 'police',
+                coords = vector4(-727.05, -1326.59, 0.00, 229.5), -- where the vehicle will spawn on display
+                defaultVehicle = 'seashark', -- Default display vehicle
+                chosenVehicle = 'seashark', -- Same as default but is dynamically changed when swapping vehicles
             },
             [2] = {
-                coords = vector4(441.59, -985.02, 25.07, 90.35),
-                defaultVehicle = 'police2',
-                chosenVehicle = 'police2',
+                coords = vector4(-732.84, -1333.5, -0.50, 229.5),
+                defaultVehicle = 'dinghy',
+                chosenVehicle = 'dinghy',
             },
             [3] = {
-                coords = vector4(441.67, -979.37, 25.07, 90.1),
-                defaultVehicle = 'fbi',
-                chosenVehicle = 'fbi',
+                coords = vector4(-737.84, -1340.83, -0.50, 229.5),
+                defaultVehicle = 'speeder',
+                chosenVehicle = 'speeder',
             },
-        }
-    }
+            [4] = {
+                coords = vector4(-741.53, -1349.7, -2.00, 229.5),
+                defaultVehicle = 'marquis',
+                chosenVehicle = 'marquis',
+            },
+        },
+    },
+    ['air'] = {
+        ['Type'] = 'free-use',  -- no player interaction is required to purchase a vehicle
+        ['Zone'] = {
+            ['Shape'] = { --polygon that surrounds the shop
+                vector2(-1607.58, -3141.7),
+                vector2(-1672.54, -3103.87),
+                vector2(-1703.49, -3158.02),
+                vector2(-1646.03, -3190.84),
+            },
+            ['minZ'] = 0.0,  -- min height of the shop zone
+            ['maxZ'] = 5.0,  -- max height of the shop zone
+            ['size'] = 7.0, -- size of the vehicles zones
+        },
+        ['Job'] = 'none', -- Name of job or none
+        ['ShopLabel'] = 'Air Shop', -- Blip name
+        ['showBlip'] = true,  -- true or false
+        ['blipSprite'] = 251,  -- Blip sprite
+        ['blipColor'] = 3,  -- Blip color
+        ['Categories'] = { -- Categories available to browse
+            ['helicopters'] = 'Helicopters',
+            ['planes'] = 'Planes',
+        },
+        ['TestDriveTimeLimit'] = 1.5, -- Time in minutes until the vehicle gets deleted
+        ['Location'] = vector3(-1652.76, -3143.4, 13.99), -- Blip Location
+        ['ReturnLocation'] = vector3(-1628.44, -3104.7, 13.94), -- Location to return vehicle, only enables if the vehicleshop has a job owned
+        ['VehicleSpawn'] = vector4(-1617.49, -3086.17, 13.94, 329.2), -- Spawn location when vehicle is bought
+        ['ShowroomVehicles'] = {
+            [1] = {
+                coords = vector4(-1651.36, -3162.66, 12.99, 346.89), -- where the vehicle will spawn on display
+                defaultVehicle = 'volatus', -- Default display vehicle
+                chosenVehicle = 'volatus', -- Same as default but is dynamically changed when swapping vehicles
+            },
+            [2] = {
+                coords = vector4(-1668.53, -3152.56, 12.99, 303.22),
+                defaultVehicle = 'luxor2',
+                chosenVehicle = 'luxor2',
+            },
+            [3] = {
+                coords = vector4(-1632.02, -3144.48, 12.99, 31.08),
+                defaultVehicle = 'nimbus',
+                chosenVehicle = 'nimbus',
+            },
+            [4] = {
+                coords = vector4(-1663.74, -3126.32, 12.99, 275.03),
+                defaultVehicle = 'frogger',
+                chosenVehicle = 'frogger',
+            },
+        },
+    },
 }
 

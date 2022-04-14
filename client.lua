@@ -167,8 +167,8 @@ local function createVehZones(shopName, entity)
                 vector3(Config.Shops[shopName]['ShowroomVehicles'][i]['coords'].x,
                 Config.Shops[shopName]['ShowroomVehicles'][i]['coords'].y,
                 Config.Shops[shopName]['ShowroomVehicles'][i]['coords'].z),
-                2.75,
-                2.75, {
+                Config.Shops[shopName]['Zone']['size'],           --2.75
+                Config.Shops[shopName]['Zone']['size'], {
                 name="box_zone",
                 debugPoly=false,
             })
