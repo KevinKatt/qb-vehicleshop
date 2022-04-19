@@ -483,53 +483,49 @@ RegisterNetEvent('qb-vehicleshop:server:checkFinance', function()
 end)
 
 -- Transfer vehicle to player in passenger seat
-RegisterNetEvent('qb-vehicleshop:server:transferVehicle', function(plate, buyerId, amount)
+QBCore.Commands.Add('transferVehicle', 'Gift or sell your vehicle', {{name = 'ID', help = 'ID of buyer'}, {name = 'amount', help = 'Sell amount'}}, false, function(source, args)
     local src = source
-    local plate = plate
-    local buyerId = tonumber(buyerId)
-    local sellAmount = tonumber(amount)
+    local buyerId = tonumber(args[1])
+    local sellAmount = tonumber(args[2])
+    if buyerId == 0 then return TriggerClientEvent('QBCore:Notify', src, 'Invalid buyer id', 'error') end
     local ped = GetPlayerPed(src)
+    local targetPed = GetPlayerPed(buyerId)
+    if targetPed == 0 then return TriggerClientEvent('QBCore:Notify', src, 'Couldn\'t get buyer info', 'error') end
+    local vehicle = GetVehiclePedIsIn(ped, false)
+    if vehicle == 0 then return TriggerClientEvent('QBCore:Notify', src, 'You must be inside the vehicle you want to transfer', 'error') end
+    local plate = QBCore.Shared.Trim(GetVehicleNumberPlateText(vehicle))
+    if not plate then return TriggerClientEvent('QBCore:Notify', src, 'Couldn\'t get vehicle info', 'error') end
     local player = QBCore.Functions.GetPlayer(src)
     local target = QBCore.Functions.GetPlayer(buyerId)
-    local citizenid = player.PlayerData.citizenid
-    if target ~= nil then
-        if sellAmount then
-            if target.Functions.GetMoney('cash') > sellAmount then
-                local targetcid = target.PlayerData.citizenid
-                MySQL.Async.execute('UPDATE player_vehicles SET citizenid = ? WHERE plate = ?', {targetcid, plate})
-                player.Functions.AddMoney('cash', sellAmount)
-                TriggerClientEvent('QBCore:Notify', src, 'You sold your vehicle for $'..comma_value(sellAmount), 'success')
-                target.Functions.RemoveMoney('cash', sellAmount)
-                TriggerClientEvent('vehiclekeys:client:SetOwner', target.PlayerData.source, plate)
-                TriggerClientEvent('QBCore:Notify', target.PlayerData.source, 'You bought a vehicle for $'..comma_value(sellAmount), 'success')
-            elseif target.Functions.GetMoney('bank') > sellAmount then
-                local targetcid = target.PlayerData.citizenid
-                MySQL.Async.execute('UPDATE player_vehicles SET citizenid = ? WHERE plate = ?', {targetcid, plate})
-                player.Functions.AddMoney('bank', sellAmount)
-                TriggerClientEvent('QBCore:Notify', src, 'You sold your vehicle for $'..comma_value(sellAmount), 'success')
-                target.Functions.RemoveMoney('bank', sellAmount)
-                TriggerClientEvent('vehiclekeys:client:SetOwner', target.PlayerData.source, plate)
-                TriggerClientEvent('QBCore:Notify', target.PlayerData.source, 'You bought a vehicle for $'..comma_value(sellAmount), 'success')
-            else
-                TriggerClientEvent('QBCore:Notify', src, 'Not enough money', 'error')
-            end
-        else
-            local targetcid = target.PlayerData.citizenid
-            MySQL.Async.execute('UPDATE player_vehicles SET citizenid = ? WHERE plate = ?', {targetcid, plate})
-            TriggerClientEvent('QBCore:Notify', src, 'You gifted your vehicle', 'success')
-            TriggerClientEvent('vehiclekeys:client:SetOwner', target.PlayerData.source, plate)
-            TriggerClientEvent('QBCore:Notify', target.PlayerData.source, 'You were gifted a vehicle', 'success')
-        end
-    else
-        TriggerClientEvent('QBCore:Notify', src, 'Couldn\'t get purchaser info.', 'error')
+    local ownerCitizenID = MySQL.Sync.fetchScalar('SELECT citizenid FROM player_vehicles WHERE plate = ?', {plate})
+    if ownerCitizenID ~= player.PlayerData.citizenid then return TriggerClientEvent('QBCore:Notify', src, 'You don\'t own this vehicle', 'error') end
+    if #(GetEntityCoords(ped) - GetEntityCoords(targetPed)) > 5.0 then return TriggerClientEvent('QBCore:Notify', src, 'The person you are selling to is too far away', 'error') end
+    if not target then return TriggerClientEvent('QBCore:Notify', src, 'Couldn\'t get buyer info', 'error') end
+    if not sellAmount then
+        local targetcid = target.PlayerData.citizenid
+        MySQL.Async.execute('UPDATE player_vehicles SET citizenid = ? WHERE plate = ?', {targetcid, plate})
+        TriggerClientEvent('QBCore:Notify', src, 'You gifted your vehicle', 'success')
+        TriggerClientEvent('vehiclekeys:client:SetOwner', buyerId, plate)
+        TriggerClientEvent('QBCore:Notify', buyerId, 'You were gifted a vehicle', 'success')
+        return
     end
-end)
-
--- Transfer vehicle to player in passenger seat
-QBCore.Commands.Add('transferVehicle', 'Gift or sell your vehicle', {{name = 'ID', help = 'ID of buyer'}, {name = 'amount', help = 'Sell amount'}}, false, function(source, args)
-    if args[1] ~= nil and args[2] ~= nil then
-        TriggerClientEvent('qb-vehicleshop:client:transferVehicle', source, args[1], args[2])
+    if target.Functions.GetMoney('cash') > sellAmount then
+        local targetcid = target.PlayerData.citizenid
+        MySQL.Async.execute('UPDATE player_vehicles SET citizenid = ? WHERE plate = ?', {targetcid, plate})
+        player.Functions.AddMoney('cash', sellAmount)
+        target.Functions.RemoveMoney('cash', sellAmount)
+        TriggerClientEvent('QBCore:Notify', src, 'You sold your vehicle for $'..comma_value(sellAmount), 'success')
+        TriggerClientEvent('vehiclekeys:client:SetOwner', buyerId, plate)
+        TriggerClientEvent('QBCore:Notify', buyerId, 'You bought a vehicle for $'..comma_value(sellAmount), 'success')
+    elseif target.Functions.GetMoney('bank') > sellAmount then
+        local targetcid = target.PlayerData.citizenid
+        MySQL.Async.execute('UPDATE player_vehicles SET citizenid = ? WHERE plate = ?', {targetcid, plate})
+        player.Functions.AddMoney('bank', sellAmount)
+        target.Functions.RemoveMoney('bank', sellAmount)
+        TriggerClientEvent('QBCore:Notify', src, 'You sold your vehicle for $'..comma_value(sellAmount), 'success')
+        TriggerClientEvent('vehiclekeys:client:SetOwner', buyerId, plate)
+        TriggerClientEvent('QBCore:Notify', buyerId, 'You bought a vehicle for $'..comma_value(sellAmount), 'success')
     else
-        TriggerClientEvent('QBCore:Notify', source, 'Check who you\'re selling to or the amount to sell for.', 'error')
+        TriggerClientEvent('QBCore:Notify', src, 'The buyer doesn\'t have enough money', 'error')
     end
 end)
