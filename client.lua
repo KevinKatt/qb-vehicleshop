@@ -1,24 +1,14 @@
 -- Variables
 local QBCore = exports['qb-core']:GetCoreObject()
 local PlayerData = QBCore.Functions.GetPlayerData() -- Just for resource restart (same as event handler)
-local insideZones = {}
-
-for name in pairs(Config.Shops) do -- foreach shop
-    insideZones[name] = false  -- default to not being in a shop
-end
+local testDriveZone = nil
+local vehicleMenu
 
 local testDriveVeh, inTestDrive = 0, false
 local ClosestVehicle = 1
 local zones = {}
 
-local function getShopInsideOf()
-    for name in pairs(Config.Shops) do -- foreach shop
-        if insideZones[name] then
-            return name
-        end
-    end
-    return nil
-end
+local insideShop = nil
 
 -- Handlers
 
@@ -45,6 +35,7 @@ end)
 local vehHeaderMenu = {
     {
         header = 'Vehicle Options',
+        icon = "fa-solid fa-car",
         txt = 'Interact with the current vehicle',
         params = {
             event = 'qb-vehicleshop:client:showVehOptions'
@@ -56,6 +47,7 @@ local financeMenu = {
     {
         header = 'Financed Vehicles',
         txt = 'Browse your owned vehicles',
+        icon = "fa-solid fa-user-ninja",
         params = {
             event = 'qb-vehicleshop:client:getVehicles'
         }
@@ -65,6 +57,7 @@ local financeMenu = {
 local returnTestDrive = {
     {
         header = 'Finish Test Drive',
+        icon = "fa-solid fa-flag-checkered",
         params = {
             event = 'qb-vehicleshop:client:TestDriveReturn'
         }
@@ -86,6 +79,7 @@ end
 
 local function comma_value(amount)
     local formatted = amount
+    local k
     while true do
         formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
         if k == 0 then
@@ -96,22 +90,22 @@ local function comma_value(amount)
 end
 
 local function getVehName()
-    return QBCore.Shared.Vehicles[Config.Shops[getShopInsideOf()]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["name"]
+    return QBCore.Shared.Vehicles[Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["name"]
 end
 
 local function getVehPrice()
-    return comma_value(QBCore.Shared.Vehicles[Config.Shops[getShopInsideOf()]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["price"])
+    return comma_value(QBCore.Shared.Vehicles[Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["price"])
 end
 
 local function getVehBrand()
-    return QBCore.Shared.Vehicles[Config.Shops[getShopInsideOf()]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["brand"]
+    return QBCore.Shared.Vehicles[Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle]["brand"]
 end
 
 local function setClosestShowroomVehicle()
     local pos = GetEntityCoords(PlayerPedId(), true)
     local current = nil
     local dist = nil
-    local closestShop = getShopInsideOf()
+    local closestShop = insideShop
     for id in pairs(Config.Shops[closestShop]["ShowroomVehicles"]) do
         local dist2 = #(pos - vector3(Config.Shops[closestShop]["ShowroomVehicles"][id].coords.x, Config.Shops[closestShop]["ShowroomVehicles"][id].coords.y, Config.Shops[closestShop]["ShowroomVehicles"][id].coords.z))
         if current then
@@ -131,11 +125,11 @@ end
 
 local function createTestDriveReturn()
     testDriveZone = BoxZone:Create(
-        Config.Shops[getShopInsideOf()]["ReturnLocation"],
+        Config.Shops[insideShop]["ReturnLocation"],
         3.0,
         5.0,
     {
-        name = "box_zone_testdrive_return_"..getShopInsideOf(),
+        name = "box_zone_testdrive_return_"..insideShop,
     })
 
     testDriveZone:onPlayerInOut(function(isPointInside)
@@ -177,7 +171,6 @@ local function createVehZones(shopName, entity)
         end
         local combo = ComboZone:Create(zones, {name = "vehCombo", debugPoly = false})
         combo:onPlayerInOut(function(isPointInside)
-            local insideShop = getShopInsideOf()
             if isPointInside then
                 if PlayerData.job.name == Config.Shops[insideShop]['Job'] or Config.Shops[insideShop]['Job'] == 'none' then
                     exports['qb-menu']:showHeader(vehHeaderMenu)
@@ -195,7 +188,7 @@ local function createVehZones(shopName, entity)
                     icon = "fas fa-car",
                     label = "Vehicle Interaction",
                     canInteract = function()
-                        local closestShop = getShopInsideOf()
+                        local closestShop = insideShop
                         return closestShop and (Config.Shops[closestShop]['Job'] == 'none' or PlayerData.job.name == Config.Shops[closestShop]['Job'])
                     end
                 },
@@ -216,18 +209,20 @@ function createFreeUseShop(shopShape, name)
 
     zone:onPlayerInOut(function(isPointInside)
         if isPointInside then
-            insideZones[name] = true
+            insideShop = name
             CreateThread(function()
-                while insideZones[name] do
+                while insideShop do
                     setClosestShowroomVehicle()
                     vehicleMenu = {
                         {
                             isMenuHeader = true,
+                            icon = "fa-solid fa-circle-info",
                             header = getVehBrand():upper()..' '..getVehName():upper()..' - $'..getVehPrice(),
                         },
                         {
                             header = 'Test Drive',
                             txt = 'Test drive currently selected vehicle',
+                            icon = "fa-solid fa-car-on",
                             params = {
                                 event = 'qb-vehicleshop:client:TestDrive',
                             }
@@ -235,26 +230,29 @@ function createFreeUseShop(shopShape, name)
                         {
                             header = "Buy Vehicle",
                             txt = 'Purchase currently selected vehicle',
+                            icon = "fa-solid fa-hand-holding-dollar",
                             params = {
                                 isServer = true,
                                 event = 'qb-vehicleshop:server:buyShowroomVehicle',
                                 args = {
-                                    buyVehicle = Config.Shops[getShopInsideOf()]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
+                                    buyVehicle = Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
                                 }
                             }
                         },
                         {
                             header = 'Finance Vehicle',
                             txt = 'Finance currently selected vehicle',
+                            icon = "fa-solid fa-coins",
                             params = {
                                 event = 'qb-vehicleshop:client:openFinance',
                                 args = {
                                     price = getVehPrice(),
-                                    buyVehicle = Config.Shops[getShopInsideOf()]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
+                                    buyVehicle = Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
                                 }
                             }
                         },
                         {
+                            icon = "fa-solid fa-arrow-rotate-left",
                             header = 'Swap Vehicle',
                             txt = 'Change currently selected vehicle',
                             params = {
@@ -266,7 +264,7 @@ function createFreeUseShop(shopShape, name)
                 end
             end)
         else
-            insideZones[name] = false -- leave the shops zone
+            insideShop = nil -- leave the shops zone
             ClosestVehicle = 1
         end
     end)
@@ -281,23 +279,24 @@ function createManagedShop(shopShape, name)
 
     zone:onPlayerInOut(function(isPointInside)
         if isPointInside then
-            insideZones[name] = true
+            insideShop = name
             CreateThread(function()
-                while insideZones[name] and PlayerData.job and PlayerData.job.name == Config.Shops[name]['Job'] do
+                while insideShop and PlayerData.job and PlayerData.job.name == Config.Shops[name]['Job'] do
                     setClosestShowroomVehicle()
-                    local closestShop = getShopInsideOf()
                     vehicleMenu = {
                         {
                             isMenuHeader = true,
+                            icon = "fa-solid fa-circle-info",
                             header = getVehBrand():upper()..' '..getVehName():upper()..' - $'..getVehPrice(),
                         },
                         {
                             header = 'Test Drive',
                             txt = 'Allow player for test drive',
+                            icon = "fa-solid fa-user-plus",
                             params = {
                                 event = 'qb-vehicleshop:client:openIdMenu',
                                 args = {
-                                    vehicle = Config.Shops[closestShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle,
+                                    vehicle = Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle,
                                     type = 'testDrive'
                                 }
                             }
@@ -305,10 +304,11 @@ function createManagedShop(shopShape, name)
                         {
                             header = "Sell Vehicle",
                             txt = 'Sell vehicle to Player',
+                            icon = "fa-solid fa-cash-register",
                             params = {
                                 event = 'qb-vehicleshop:client:openIdMenu',
                                 args = {
-                                    vehicle = Config.Shops[closestShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle,
+                                    vehicle = Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle,
                                     type = 'sellVehicle'
                                 }
                             }
@@ -316,16 +316,18 @@ function createManagedShop(shopShape, name)
                         {
                             header = 'Finance Vehicle',
                             txt = 'Finance vehicle to Player',
+                            icon = "fa-solid fa-coins",
                             params = {
                                 event = 'qb-vehicleshop:client:openCustomFinance',
                                 args = {
                                     price = getVehPrice(),
-                                    vehicle = Config.Shops[closestShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
+                                    vehicle = Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle
                                 }
                             }
                         },
                         {
                             header = 'Swap Vehicle',
+                            icon = "fa-solid fa-arrow-rotate-left",
                             txt = 'Change currently selected vehicle',
                             params = {
                                 event = 'qb-vehicleshop:client:vehCategories',
@@ -336,7 +338,7 @@ function createManagedShop(shopShape, name)
                 end
             end)
         else
-            insideZones[name] = false -- leave the shops zone
+            insideShop = nil -- leave the shops zone
             ClosestVehicle = 1
         end
     end)
@@ -364,8 +366,8 @@ RegisterNetEvent('qb-vehicleshop:client:TestDrive', function()
     if not inTestDrive and ClosestVehicle ~= 0 then
         inTestDrive = true
         local prevCoords = GetEntityCoords(PlayerPedId())
-        QBCore.Functions.SpawnVehicle(Config.Shops[getShopInsideOf()]["ShowroomVehicles"][ClosestVehicle].chosenVehicle, function(veh)
-            local closestShop = getShopInsideOf()
+        QBCore.Functions.SpawnVehicle(Config.Shops[insideShop]["ShowroomVehicles"][ClosestVehicle].chosenVehicle, function(veh)
+            local closestShop = insideShop
             TaskWarpPedIntoVehicle(PlayerPedId(), veh, -1)
             exports['lj-fuel']:SetFuel(veh, 100)
             SetVehicleNumberPlateText(veh, 'TESTDRIVE')
@@ -384,9 +386,9 @@ RegisterNetEvent('qb-vehicleshop:client:TestDrive', function()
                     QBCore.Functions.Notify('Vehicle test drive complete')
                 end
             end)
-        end, Config.Shops[getShopInsideOf()]["VehicleSpawn"], false)
+        end, Config.Shops[insideShop]["VehicleSpawn"], false)
         createTestDriveReturn()
-        startTestDriveTimer(Config.Shops[getShopInsideOf()]["TestDriveTimeLimit"] * 60)
+        startTestDriveTimer(Config.Shops[insideShop]["TestDriveTimeLimit"] * 60)
     else
         QBCore.Functions.Notify('Already in test drive', 'error')
     end
@@ -395,20 +397,18 @@ end)
 RegisterNetEvent('qb-vehicleshop:client:customTestDrive', function(data)
     if not inTestDrive then
         inTestDrive = true
-        shopInsideOf = getShopInsideOf()
         local vehicle = data
         local prevCoords = GetEntityCoords(PlayerPedId())
         QBCore.Functions.SpawnVehicle(vehicle, function(veh)
-            local shopInsideOf = getShopInsideOf()
             exports['lj-fuel']:SetFuel(veh, 100)
             SetVehicleNumberPlateText(veh, 'TESTDRIVE')
             SetEntityAsMissionEntity(veh, true, true)
-            SetEntityHeading(veh, Config.Shops[shopInsideOf]["VehicleSpawn"].w)
+            SetEntityHeading(veh, Config.Shops[insideShop]["VehicleSpawn"].w)
             TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(veh))
             TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', QBCore.Functions.GetVehicleProperties(veh))
             testDriveVeh = veh
-            QBCore.Functions.Notify('You have '..Config.Shops[shopInsideOf]["TestDriveTimeLimit"]..' minutes remaining')
-            SetTimeout(Config.Shops[shopInsideOf]["TestDriveTimeLimit"] * 60000, function()
+            QBCore.Functions.Notify('You have '..Config.Shops[insideShop]["TestDriveTimeLimit"]..' minutes remaining')
+            SetTimeout(Config.Shops[insideShop]["TestDriveTimeLimit"] * 60000, function()
                 if testDriveVeh ~= 0 then
                     testDriveVeh = 0
                     inTestDrive = false
@@ -417,9 +417,9 @@ RegisterNetEvent('qb-vehicleshop:client:customTestDrive', function(data)
                     QBCore.Functions.Notify('Vehicle test drive complete')
                 end
             end)
-        end, Config.Shops[shopInsideOf]["VehicleSpawn"], false)
+        end, Config.Shops[insideShop]["VehicleSpawn"], false)
         createTestDriveReturn()
-        startTestDriveTimer(Config.Shops[shopInsideOf]["TestDriveTimeLimit"] * 60)
+        startTestDriveTimer(Config.Shops[insideShop]["TestDriveTimeLimit"] * 60)
     else
         QBCore.Functions.Notify('Already in test drive', 'error')
     end
@@ -442,15 +442,17 @@ end)
 RegisterNetEvent('qb-vehicleshop:client:vehCategories', function()
     local categoryMenu = {
         {
-            header = '< Go Back',
+            header = 'Go Back',
+            icon = "fa-solid fa-angle-left",
             params = {
                 event = 'qb-vehicleshop:client:homeMenu'
             }
         }
     }
-    for k,v in pairs(Config.Shops[getShopInsideOf()]['Categories']) do
+    for k,v in pairs(Config.Shops[insideShop]['Categories']) do
         categoryMenu[#categoryMenu + 1] = {
             header = v,
+            icon = "fa-solid fa-circle",
             params = {
                 event = 'qb-vehicleshop:client:openVehCats',
                 args = {
@@ -463,32 +465,34 @@ RegisterNetEvent('qb-vehicleshop:client:vehCategories', function()
 end)
 
 RegisterNetEvent('qb-vehicleshop:client:openVehCats', function(data)
-    local vehicleMenu = {
+    local vehMenu = {
         {
-            header = '< Go Back',
+            header = 'Go Back',
+            icon = "fa-solid fa-angle-left",
             params = {
                 event = 'qb-vehicleshop:client:vehCategories'
             }
         }
     }
     for k,v in pairs(QBCore.Shared.Vehicles) do
-        if QBCore.Shared.Vehicles[k]["category"] == data.catName and QBCore.Shared.Vehicles[k]["shop"] == getShopInsideOf() then
-            vehicleMenu[#vehicleMenu + 1] = {
+        if QBCore.Shared.Vehicles[k]["category"] == data.catName and QBCore.Shared.Vehicles[k]["shop"] == insideShop then
+            vehMenu[#vehMenu + 1] = {
                 header = v.name,
                 txt = 'Price: $'..v.price,
+                icon = "fa-solid fa-car-side",
                 params = {
                     isServer = true,
                     event = 'qb-vehicleshop:server:swapVehicle',
                     args = {
                         toVehicle = v.model,
                         ClosestVehicle = ClosestVehicle,
-                        ClosestShop = getShopInsideOf()
+                        ClosestShop = insideShop
                     }
                 }
             }
         end
     end
-    exports['qb-menu']:openMenu(vehicleMenu)
+    exports['qb-menu']:openMenu(vehMenu)
 end)
 
 RegisterNetEvent('qb-vehicleshop:client:openFinance', function(data)
@@ -597,24 +601,25 @@ RegisterNetEvent('qb-vehicleshop:client:buyShowroomVehicle', function(vehicle, p
         TaskWarpPedIntoVehicle(PlayerPedId(), veh, -1)
         exports['lj-fuel']:SetFuel(veh, 100)
         SetVehicleNumberPlateText(veh, plate)
-        SetEntityHeading(veh, Config.Shops[getShopInsideOf()]["VehicleSpawn"].w)
+        SetEntityHeading(veh, Config.Shops[insideShop]["VehicleSpawn"].w)
         SetEntityAsMissionEntity(veh, true, true)
         TriggerEvent("vehiclekeys:client:SetOwner", QBCore.Functions.GetPlate(veh))
         TriggerServerEvent('MojiaVehicleKeys:server:AddVehicleKey', QBCore.Functions.GetPlate(veh), vehicle)
         TriggerServerEvent("qb-vehicletuning:server:SaveVehicleProps", QBCore.Functions.GetVehicleProperties(veh))
-    end, Config.Shops[getShopInsideOf()]["VehicleSpawn"], true)
+    end, Config.Shops[insideShop]["VehicleSpawn"], true)
 end)
 
 RegisterNetEvent('qb-vehicleshop:client:getVehicles', function()
     QBCore.Functions.TriggerCallback('qb-vehicleshop:server:getVehicles', function(vehicles)
         local ownedVehicles = {}
-        for k,v in pairs(vehicles) do
+        for _, v in pairs(vehicles) do
             if v.balance ~= 0 then
                 local name = QBCore.Shared.Vehicles[v.vehicle]["name"]
                 local plate = v.plate:upper()
                 ownedVehicles[#ownedVehicles + 1] = {
                     header = name,
                     txt = 'Plate: '..plate,
+                    icon = "fa-solid fa-car-side",
                     params = {
                         event = 'qb-vehicleshop:client:getVehicleFinance',
                         args = {
@@ -641,21 +646,25 @@ RegisterNetEvent('qb-vehicleshop:client:getVehicleFinance', function(data)
         },
         {
             isMenuHeader = true,
+            icon = "fa-solid fa-sack-dollar",
             header = 'Total Balance Remaining',
             txt = '$'..comma_value(data.balance)
         },
         {
             isMenuHeader = true,
+            icon = "fa-solid fa-hashtag",
             header = 'Total Payments Remaining',
             txt = data.paymentsLeft
         },
         {
             isMenuHeader = true,
+            icon = "fa-solid fa-sack-dollar",
             header = 'Recurring Payment Amount',
             txt = '$'..comma_value(data.paymentAmount)
         },
         {
             header = 'Make a payment',
+            icon = "fa-solid fa-hand-holding-dollar",
             params = {
                 event = 'qb-vehicleshop:client:financePayment',
                 args = {
@@ -667,6 +676,7 @@ RegisterNetEvent('qb-vehicleshop:client:getVehicleFinance', function(data)
         },
         {
             header = 'Payoff vehicle',
+            icon = "fa-solid fa-hand-holding-dollar",
             params = {
                 isServer = true,
                 event = 'qb-vehicleshop:server:financePaymentFull',
