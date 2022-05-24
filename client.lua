@@ -372,7 +372,7 @@ RegisterNetEvent('qb-vehicleshop:client:TestDrive', function()
             exports['lj-fuel']:SetFuel(veh, 100)
             SetVehicleNumberPlateText(veh, 'TESTDRIVE')
             SetEntityAsMissionEntity(veh, true, true)
-            SetEntityHeading(veh, Config.Shops[closestShop]["VehicleSpawn"].w)
+            SetEntityHeading(veh, Config.Shops[closestShop]["TestDriveSpawn"].w)
             TriggerEvent('vehiclekeys:client:SetOwner', QBCore.Functions.GetPlate(veh))
             TriggerServerEvent('qb-vehicletuning:server:SaveVehicleProps', QBCore.Functions.GetVehicleProperties(veh))
             testDriveVeh = veh
@@ -386,7 +386,7 @@ RegisterNetEvent('qb-vehicleshop:client:TestDrive', function()
                     QBCore.Functions.Notify('Vehicle test drive complete')
                 end
             end)
-        end, Config.Shops[insideShop]["VehicleSpawn"], false)
+        end, Config.Shops[insideShop]["TestDriveSpawn"], false)
         createTestDriveReturn()
         startTestDriveTimer(Config.Shops[insideShop]["TestDriveTimeLimit"] * 60)
     else
