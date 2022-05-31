@@ -166,6 +166,8 @@ local function createVehZones(shopName, entity)
                 Config.Shops[shopName]['Zone']['size'],
             {
                 name = "box_zone_"..shopName.."_"..i,
+                minZ = Config.Shops[shopName]['Zone']['minZ'],
+                maxZ = Config.Shops[shopName]['Zone']['maxZ'],
                 debugPoly = false,
             })
         end
